@@ -115,6 +115,19 @@ const cancelUserModalBtn = document.getElementById('cancel-user-modal-btn');
 
 // Initialize
 function init() {
+    // Force Check/Create Admin on start
+    db.ref('users/admin').get().then((snapshot) => {
+        if (!snapshot.exists()) {
+            db.ref('users/admin').set({
+                password: 'admin',
+                role: 'admin',
+                firstName: 'System',
+                lastName: 'Administrator',
+                paymentCode: 'ADMIN-001'
+            }).then(() => console.log("Admin account created successfully."));
+        }
+    });
+
     // Listen for Settings
     db.ref('settings').on('value', (snapshot) => {
         const settings = snapshot.val() || {};
