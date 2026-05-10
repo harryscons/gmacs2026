@@ -135,15 +135,22 @@ function init() {
         });
 
     // Force Check/Create Admin on start
-    db.ref('users/admin').get().then((snapshot) => {
-        if (!snapshot.exists()) {
+    db.ref('users/admin').once('value', (snapshot) => {
+        if (!snapshot.val()) {
+            console.log("Creating admin...");
             db.ref('users/admin').set({
                 password: 'admin',
                 role: 'admin',
                 firstName: 'System',
                 lastName: 'Administrator',
                 paymentCode: 'ADMIN-001'
-            }).then(() => console.log("Admin account created successfully."));
+            }).then(() => console.log("Admin account created successfully."))
+              .catch(err => alert("Σφάλμα δημιουργίας Admin: " + err.message));
+        }
+    }, (err) => {
+        console.error("Admin Check Error:", err);
+        if (err.code === "PERMISSION_DENIED") {
+            alert("Η βάση δεδομένων είναι κλειδωμένη! Παρακαλώ αλλάξτε τα Rules σε true στο Firebase Console.");
         }
     });
 
@@ -154,9 +161,10 @@ function init() {
         PRICE_FIRST = settings.priceFirst || 10;
         PRICE_ADDITIONAL = settings.priceAdditional || 5;
         
-        if (settings.events) {
+        if (settings.events && settings.events.length > 0) {
             EVENTS_LIST = settings.events;
         } else {
+            console.log("Settings empty, uploading defaults...");
             // Upload default events from Events.xlsx if database is empty
             const defaultEvents = [
                 "100μ", "200μ", "400μ", "800μ", "1500μ", "5000μ",
@@ -164,12 +172,13 @@ function init() {
                 "Βαρύ Οργανο", "Δίσκος", "Επι Κοντώ", "Μήκος", "Σφαίρα", 
                 "Σφύρα", "Τριπλούν", "Ύψος", "4x100", "4x400"
             ];
-            db.ref('settings').update({
+            db.ref('settings').set({
                 events: defaultEvents,
                 maxEvents: 4,
                 priceFirst: 10,
                 priceAdditional: 5
-            });
+            }).then(() => console.log("Settings initialized."))
+              .catch(err => console.error("Settings Upload Error:", err));
             EVENTS_LIST = defaultEvents;
         }
         
