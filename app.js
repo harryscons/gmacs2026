@@ -118,6 +118,13 @@ const saveUserModalBtn = document.getElementById('save-user-modal-btn');
 const closeUserModalBtn = document.getElementById('close-user-modal-btn');
 const cancelUserModalBtn = document.getElementById('cancel-user-modal-btn');
 
+// Helper to switch views
+function showView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById(viewId);
+    if (target) target.classList.add('active');
+}
+
 // Initialize
 function init() {
     console.log("App initializing...");
@@ -232,11 +239,10 @@ function init() {
     });
 
     if (currentUser) {
-        authLanding.classList.add('hidden');
         if (currentUser === 'admin') {
-            adminView.classList.add('active');
+            showView('admin-view');
         } else {
-            dashboardView.classList.add('active');
+            showView('dashboard-view');
             const u = users[currentUser];
             if (u) {
                 firstNameInput.value = u.firstName || '';
@@ -248,7 +254,10 @@ function init() {
             }
         }
     } else {
+        showView('login-view');
         authLanding.classList.remove('hidden');
+        authLogin.classList.add('hidden');
+        authRegister.classList.add('hidden');
     }
     } catch (e) {
         console.error("Initialization Error:", e);
@@ -297,15 +306,13 @@ async function login(name, password) {
         const userData = users[currentUser];
         
         if (userData.role === 'admin') {
-            loginView.classList.remove('active');
-            adminView.classList.add('active');
+            showView('admin-view');
             renderAdminDashboard();
         } else {
             welcomeName.textContent = userData.firstName + ' ' + userData.lastName;
             paymentCodeDisplay.textContent = userData.paymentCode;
             
-            loginView.classList.remove('active');
-            dashboardView.classList.add('active');
+            showView('dashboard-view');
             
             // Populate profile form in dashboard
             firstNameInput.value = userData.firstName || '';
@@ -388,21 +395,19 @@ function saveProfile(firstName, lastName, birthDate, phone, email, gender) {
 function logout() {
     currentUser = null;
     localStorage.removeItem('race_user');
-    
-    dashboardView.classList.remove('active');
-    adminView.classList.remove('active');
-    loginView.classList.add('active');
-    
-    // Reset to landing screen
+    showView('login-view');
+    authLanding.classList.remove('hidden');
     authLogin.classList.add('hidden');
     authRegister.classList.add('hidden');
-    authLanding.classList.remove('hidden');
     
+    // Clear inputs
     usernameInput.value = '';
     passwordInput.value = '';
     firstNameInput.value = '';
     lastNameInput.value = '';
     birthDateInput.value = '';
+    phoneInput.value = '';
+    emailInput.value = '';
     genderInput.value = '';
 }
 
