@@ -115,16 +115,22 @@ const cancelUserModalBtn = document.getElementById('cancel-user-modal-btn');
 
 // Initialize
 function init() {
-    const statusText = document.getElementById('status-text');
-    
-    // Check connection
-    db.ref('.info/connected').on('value', (snapshot) => {
-        if (snapshot.val() === true) {
-            statusText.innerHTML = '<span style="color: #059669;">● Συνδεδεμένος</span>';
-        } else {
-            statusText.innerHTML = '<span style="color: #dc2626;">○ Αποσυνδεδεμένος (Προσπάθεια...)</span>';
-        }
-    });
+    console.log("App initializing...");
+    try {
+        const statusText = document.getElementById('status-text');
+        if (statusText) statusText.innerHTML = "Έναρξη σύνδεσης...";
+
+        // Check connection
+        db.ref('.info/connected').on('value', (snapshot) => {
+            console.log("Connection status changed:", snapshot.val());
+            if (statusText) {
+                if (snapshot.val() === true) {
+                    statusText.innerHTML = '<span style="color: #059669;">● Συνδεδεμένος</span>';
+                } else {
+                    statusText.innerHTML = '<span style="color: #dc2626;">○ Αναμονή σύνδεσης...</span>';
+                }
+            }
+        }, (err) => console.error("Connection Check Error:", err));
 
     // Force Check/Create Admin on start
     db.ref('users/admin').get().then((snapshot) => {
@@ -227,6 +233,11 @@ function init() {
         }
     } else {
         authLanding.classList.remove('hidden');
+    }
+    } catch (e) {
+        console.error("Initialization Error:", e);
+        const statusText = document.getElementById('status-text');
+        if (statusText) statusText.innerHTML = '<span style="color: #dc2626;">Σφάλμα εφαρμογής: ' + e.message + '</span>';
     }
 }
 
