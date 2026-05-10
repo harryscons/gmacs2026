@@ -505,6 +505,17 @@ input, select {
 
   .modal-footer {
     flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .disclaimer-box {
+    padding: 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .admin-controls {
+    flex-direction: column;
+    width: 100%;
   }
 }
 
