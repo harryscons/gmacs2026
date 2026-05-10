@@ -756,13 +756,13 @@ backBtns.forEach(btn => {
     });
 });
 
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = usernameInput.value.trim();
     const password = passwordInput.value;
     
     if (name && password) {
-        login(name, password);
+        await login(name, password);
     }
 });
 
