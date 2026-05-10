@@ -138,11 +138,11 @@ function init() {
         if (settings.events) {
             EVENTS_LIST = settings.events;
         } else {
-            // Upload default events if database is empty
+            // Upload default events from Events.xlsx if database is empty
             const defaultEvents = [
                 "100μ", "200μ", "400μ", "800μ", "1500μ", "5000μ",
                 "110μ Εμπόδια", "400μ Εμπόδια", "5000μ Βάδην", "Ακόντιο", 
-                "Δίσκος", "Επί κοντώ", "Μήκος", "Σφαίρα", 
+                "Βαρύ Οργανο", "Δίσκος", "Επι Κοντώ", "Μήκος", "Σφαίρα", 
                 "Σφύρα", "Τριπλούν", "Ύψος", "4x100", "4x400"
             ];
             db.ref('settings').update({
