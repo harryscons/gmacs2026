@@ -115,6 +115,17 @@ const cancelUserModalBtn = document.getElementById('cancel-user-modal-btn');
 
 // Initialize
 function init() {
+    const statusText = document.getElementById('status-text');
+    
+    // Check connection
+    db.ref('.info/connected').on('value', (snapshot) => {
+        if (snapshot.val() === true) {
+            statusText.innerHTML = '<span style="color: #059669;">● Συνδεδεμένος</span>';
+        } else {
+            statusText.innerHTML = '<span style="color: #dc2626;">○ Αποσυνδεδεμένος (Προσπάθεια...)</span>';
+        }
+    });
+
     // Force Check/Create Admin on start
     db.ref('users/admin').get().then((snapshot) => {
         if (!snapshot.exists()) {
