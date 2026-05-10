@@ -1,12 +1,13 @@
-// Firebase Configuration (Replace with your actual config from Firebase Console)
+// Firebase Configuration
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "gmacs2026.firebaseapp.com",
-    databaseURL: "https://gmacs2026-default-rtdb.firebaseio.com",
-    projectId: "gmacs2026",
-    storageBucket: "gmacs2026.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA4ZBIjmz_kBUjJ8JBT9QUa5l1JV5hs2rA",
+  authDomain: "gmacs2026.firebaseapp.com",
+  projectId: "gmacs2026",
+  databaseURL: "https://gmacs2026-default-rtdb.firebaseio.com", // Assumed default, update if different
+  storageBucket: "gmacs2026.firebasestorage.app",
+  messagingSenderId: "517340210442",
+  appId: "1:517340210442:web:ad6e31939fc516f0a3c6f3",
+  measurementId: "G-5JPDE6L93P"
 };
 
 // Initialize Firebase
