@@ -458,11 +458,27 @@ function finalizeSubmission() {
         alert('Πρέπει να αποδεχτείτε την Υπεύθυνη Δήλωση για να ολοκληρώσετε την υποβολή.');
         return;
     }
-    
-    if (sessionEntries.length === 0) {
+
+    // ── Snapshot everything BEFORE any async work ──────────────────────────
+    // This ensures that no external Firebase event or user action can change
+    // what we save, even mid-operation.
+    const entriesToSave = sessionEntries.map(e => ({
+        athleteName: e.athleteName,
+        eventName:   e.eventName,
+        createdAt:   e.createdAt
+    }));
+
+    const idsToDelete = entries
+        .filter(e => e.athleteName === currentUser)
+        .map(e => e.id);
+    // ───────────────────────────────────────────────────────────────────────
+
+    if (entriesToSave.length === 0) {
         alert('Δεν έχετε προσθέσει κανένα αγώνισμα.');
         return;
     }
+
+    console.log("Finalizing:", entriesToSave.length, "entries. Deleting:", idsToDelete.length, "old entries.");
 
     // Disable button immediately to prevent double-clicks
     finalConfirmBtn.disabled = true;
@@ -470,28 +486,20 @@ function finalizeSubmission() {
     finalConfirmBtn.style.cursor = 'not-allowed';
     finalConfirmBtn.querySelector('span').textContent = 'Αποθήκευση...';
 
-    // 1. Find and delete existing entries for this user from Firebase
-    const existingUserEntryIds = entries
-        .filter(e => e.athleteName === currentUser)
-        .map(e => e.id);
-
-    const deletePromises = existingUserEntryIds.map(id => db.ref('entries/' + id).remove());
+    // 1. Delete existing Firebase entries for this user
+    const deletePromises = idsToDelete.map(id => db.ref('entries/' + id).remove());
 
     Promise.all(deletePromises).then(() => {
-        // 2. Add the current session entries to Firebase
-        const addPromises = sessionEntries.map(entry => {
-            const entryData = {
-                athleteName: entry.athleteName,
-                eventName: entry.eventName,
-                createdAt: entry.createdAt
-            };
-            return db.ref('entries').push(entryData);
-        });
+        console.log("Old entries deleted. Now saving", entriesToSave.length, "entries...");
+        // 2. Save the frozen snapshot — not the live sessionEntries
+        const addPromises = entriesToSave.map(entryData => db.ref('entries').push(entryData));
         return Promise.all(addPromises);
     }).then(() => {
+        console.log("All entries saved successfully.");
         closeDisclaimerModal();
         alert('Η εγγραφή σας ολοκληρώθηκε και αποθηκεύτηκε επιτυχώς!');
     }).catch(error => {
+        console.error("Finalize error:", error);
         // Re-enable button on error so user can try again
         finalConfirmBtn.disabled = false;
         finalConfirmBtn.style.opacity = '1';
@@ -500,6 +508,7 @@ function finalizeSubmission() {
         alert('Σφάλμα κατά την αποθήκευση: ' + error.message);
     });
 }
+
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' }).format(amount);
