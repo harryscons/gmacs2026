@@ -259,6 +259,11 @@ async function login(name, password) {
 }
 
 async function register(username, password, firstName, lastName, birthDate, phone, email, gender) {
+    console.log("Attempting to register:", username);
+    if (!username || !password || !firstName || !lastName || !birthDate || !phone || !email || !gender) {
+        alert('Παρακαλώ συμπληρώστε όλα τα πεδία.');
+        return false;
+    }
     if (users[username]) {
         alert('Το όνομα χρήστη υπάρχει ήδη.');
         return false;
@@ -627,6 +632,7 @@ function closeModal() {
 }
 
 function saveEntry() {
+    console.log("Saving entry...");
     const eventName = eventSelect.value;
     if (!eventName) {
         alert('Παρακαλώ επιλέξτε αγώνισμα');
