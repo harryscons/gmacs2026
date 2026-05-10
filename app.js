@@ -258,7 +258,7 @@ async function login(name, password) {
     }
 }
 
-function register(username, password, firstName, lastName, birthDate, phone, email, gender) {
+async function register(username, password, firstName, lastName, birthDate, phone, email, gender) {
     if (users[username]) {
         alert('Το όνομα χρήστη υπάρχει ήδη.');
         return false;
@@ -276,15 +276,15 @@ function register(username, password, firstName, lastName, birthDate, phone, ema
         role: 'athlete'
     };
 
-    db.ref('users/' + username).set(newUser).then(() => {
+    return db.ref('users/' + username).set(newUser).then(() => {
         alert('Η εγγραφή ολοκληρώθηκε! Παρακαλώ συνδεθείτε.');
         authRegister.classList.add('hidden');
         authLanding.classList.remove('hidden');
+        return true;
     }).catch(error => {
         alert('Σφάλμα κατά την εγγραφή: ' + error.message);
+        return false;
     });
-
-    return true;
 }
 
 function saveProfile(firstName, lastName, birthDate, phone, email, gender) {
@@ -779,7 +779,7 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-registerForm.addEventListener('submit', (e) => {
+registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = regUsernameInput.value.trim();
     const password = regPasswordInput.value;
@@ -791,11 +791,13 @@ registerForm.addEventListener('submit', (e) => {
     const gender = regGenderInput.value;
 
     if (username && password && firstName && lastName && birthDate && phone && email && gender) {
-        register(username, password, firstName, lastName, birthDate, phone, email, gender);
+        await register(username, password, firstName, lastName, birthDate, phone, email, gender);
+    } else {
+        alert('Παρακαλώ συμπληρώστε όλα τα πεδία.');
     }
 });
 
-profileForm.addEventListener('submit', (e) => {
+profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const firstName = firstNameInput.value.trim();
     const lastName = lastNameInput.value.trim();
@@ -805,7 +807,7 @@ profileForm.addEventListener('submit', (e) => {
     const gender = genderInput.value;
 
     if (firstName && lastName && birthDate && phone && email && gender) {
-        saveProfile(firstName, lastName, birthDate, phone, email, gender);
+        await saveProfile(firstName, lastName, birthDate, phone, email, gender);
     }
 });
 
