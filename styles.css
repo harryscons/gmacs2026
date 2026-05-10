@@ -426,3 +426,101 @@ input, select {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* --- Mobile Responsiveness --- */
+
+/* For devices smaller than 768px (Tablets/Phones) */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .header-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-title h1 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+
+  .glass-card {
+    padding: 1.5rem;
+    width: 95%;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  /* Stack the profile form from 2 columns to 1 */
+  #profile-form > div {
+    grid-template-columns: 1fr !important;
+  }
+
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .content-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .primary-button, .secondary-button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+
+  .entries-table th, .entries-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .actions-cell {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  #payment-code-display {
+    font-size: 1.5rem;
+    padding: 0.4rem 1rem;
+    letter-spacing: 2px;
+  }
+
+  /* Modal adjustments */
+  .modal-content {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+}
+
+/* For very small devices (Phones under 480px) */
+@media (max-width: 480px) {
+  .login-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .header-title h1 {
+    font-size: 1.1rem;
+  }
+
+  .entries-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
