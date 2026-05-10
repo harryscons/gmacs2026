@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Track Event Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load Feather icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- Load SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <!-- Login View -->
+    <!-- Login View -->
+    <div id="login-view" class="view active">
+        <header class="dashboard-header" style="max-width: 1000px; margin: 2rem auto; width: 100%; justify-content: center; text-align: center;">
+            <div class="header-title" style="flex-direction: column; align-items: center; gap: 0.5rem;">
+                <div class="header-icon" style="margin-bottom: 0.5rem;">
+                    <i data-feather="award"></i>
+                </div>
+                <div>
+                    <h1 style="font-size: 1.5rem;">Πανελλήνιο Πρωτάθλημα Βετεράνων Αθλητών Στίβου</h1>
+                    <p style="color: var(--primary); font-weight: 600;">Πάτρα 2026</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Auth Landing -->
+        <div id="auth-landing" class="glass-card login-card" style="margin: 0 auto; text-align: center;">
+            <div class="login-header">
+                <h2>Καλώς ήρθατε</h2>
+                <p style="margin-top: 0.5rem;">Επιλέξτε μια ενέργεια για να συνεχίσετε</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <button id="show-login-btn" class="primary-button">
+                    <i data-feather="log-in"></i>
+                    <span>Είσοδος</span>
+                </button>
+                <button id="show-register-btn" class="secondary-button" style="border: 1px solid var(--border);">
+                    <i data-feather="user-plus"></i>
+                    <span>Εγγραφή</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="auth-login" class="glass-card login-card hidden" style="margin: 0 auto;">
+            <div class="login-header">
+                <h2>Είσοδος</h2>
+                <p style="margin-top: 0.5rem;">Εισάγετε τα στοιχεία σας</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <i data-feather="user" class="input-icon"></i>
+                    <input type="text" id="username" placeholder="Όνομα Χρήστη" autocomplete="off" required>
+                </div>
+                <div class="input-group" style="margin-top: -0.5rem;">
+                    <i data-feather="lock" class="input-icon"></i>
+                    <input type="password" id="password" placeholder="Κωδικός" required>
+                </div>
+                <button type="submit" class="primary-button">
+                    <i data-feather="log-in"></i>
+                    <span>Είσοδος</span>
+                </button>
+                <button type="button" class="back-to-landing secondary-button" style="margin-top: 0.5rem; width: 100%;">
+                    <span>Πίσω</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div id="auth-register" class="glass-card login-card hidden" style="margin: 0 auto; max-width: 500px;">
+            <div class="login-header">
+                <h2>Εγγραφή Αθλητή</h2>
+                <p style="margin-top: 0.5rem;">Συμπληρώστε όλα τα στοιχεία σας</p>
+            </div>
+            <form id="register-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <i data-feather="user" class="input-icon"></i>
+                        <input type="text" id="reg-username" placeholder="Όνομα Χρήστη (Username)" required>
+                    </div>
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <i data-feather="lock" class="input-icon"></i>
+                        <input type="password" id="reg-password" placeholder="Κωδικός" required>
+                    </div>
+                    <div class="input-group">
+                        <i data-feather="edit-3" class="input-icon"></i>
+                        <input type="text" id="reg-first-name" placeholder="Όνομα" required>
+                    </div>
+                    <div class="input-group">
+                        <i data-feather="edit-3" class="input-icon"></i>
+                        <input type="text" id="reg-last-name" placeholder="Επώνυμο" required>
+                    </div>
+                    <div class="input-group">
+                        <i data-feather="calendar" class="input-icon"></i>
+                        <input type="date" id="reg-birth-date" required>
+                    </div>
+                    <div class="input-group">
+                        <i data-feather="phone" class="input-icon"></i>
+                        <input type="tel" id="reg-phone" placeholder="Τηλέφωνο" required>
+                    </div>
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <i data-feather="mail" class="input-icon"></i>
+                        <input type="email" id="reg-email" placeholder="Email (π.χ. user@example.com)" required>
+                    </div>
+                    <div class="input-group">
+                        <i data-feather="users" class="input-icon"></i>
+                        <select id="reg-gender" class="select-field" required style="padding-left: 3rem;">
+                            <option value="" disabled selected>Φύλο...</option>
+                            <option value="Male">Άνδρας</option>
+                            <option value="Female">Γυναίκα</option>
+                            <option value="Other">Άλλο</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="primary-button" style="margin-top: 1.5rem; width: 100%;">
+                    <i data-feather="user-check"></i>
+                    <span>Ολοκλήρωση Εγγραφής</span>
+                </button>
+                <button type="button" class="back-to-landing secondary-button" style="margin-top: 0.5rem; width: 100%;">
+                    <span>Πίσω</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="view">
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <div class="header-icon">
+                        <i data-feather="award"></i>
+                    </div>
+                    <div>
+                        <h1>Πανελλήνιο Πρωτάθλημα Βετεράνων Αθλητών Στίβου</h1>
+                        <p style="color: var(--primary); font-weight: 600;">Πάτρα 2026</p>
+                        <p style="margin-top: 1rem;">Καλώς ήρθατε, <span id="welcome-name"></span></p>
+                        <div style="margin-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">Κωδικός Πληρωμής:</span>
+                            <div id="payment-code-display" style="font-size: 2rem; font-weight: 800; font-family: monospace; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 0.5rem 1.5rem; border-radius: 0.75rem; letter-spacing: 4px; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); border: 2px solid rgba(255,255,255,0.2);">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button id="logout-btn" class="logout-button">
+                        <i data-feather="log-out"></i>
+                        <span>Αποσύνδεση</span>
+                    </button>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <!-- Profile Section -->
+                <div class="content-header" style="margin-bottom: 1.5rem;">
+                    <h2>Τα Στοιχεία Σας</h2>
+                </div>
+                <form id="profile-form" style="margin-bottom: 3rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="input-group">
+                            <i data-feather="user" class="input-icon"></i>
+                            <input type="text" id="first-name" placeholder="Όνομα" autocomplete="off" required>
+                        </div>
+                        <div class="input-group">
+                            <i data-feather="user" class="input-icon"></i>
+                            <input type="text" id="last-name" placeholder="Επώνυμο" autocomplete="off" required>
+                        </div>
+                        <div class="input-group">
+                            <i data-feather="calendar" class="input-icon"></i>
+                            <input type="date" id="birth-date" required>
+                        </div>
+                        <div class="input-group">
+                            <i data-feather="phone" class="input-icon"></i>
+                            <input type="tel" id="profile-phone" placeholder="Τηλέφωνο" required>
+                        </div>
+                        <div class="input-group">
+                            <i data-feather="mail" class="input-icon"></i>
+                            <input type="email" id="profile-email" placeholder="Email (π.χ. user@example.com)" required>
+                        </div>
+                        <div class="input-group">
+                            <i data-feather="users" class="input-icon"></i>
+                            <select id="gender" class="select-field" required style="padding-left: 3rem;">
+                                <option value="" disabled selected>Φύλο...</option>
+                                <option value="Male">Άνδρας</option>
+                                <option value="Female">Γυναίκα</option>
+                                <option value="Other">Άλλο</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: center;">
+                        <button type="submit" class="primary-button" style="padding-left: 3rem; padding-right: 3rem;">
+                            <i data-feather="save"></i>
+                            <span>Αποθήκευση Ατομικών Στοιχείων</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="content-header">
+                    <h2>Οι Συμμετοχές Σας</h2>
+                    <button id="add-entry-btn" class="primary-button">
+                        <i data-feather="plus"></i>
+                        <span>Προσθήκη Αγωνίσματος</span>
+                    </button>
+                </div>
+
+                <div id="empty-state" class="empty-state">
+                    <div class="empty-icon">
+                        <i data-feather="inbox"></i>
+                    </div>
+                    <h3>Δεν βρέθηκαν συμμετοχές</h3>
+                    <p>Ξεκινήστε προσθέτοντας το πρώτο σας αγώνισμα!</p>
+                </div>
+
+                <div id="table-wrapper" class="table-wrapper">
+                    <table class="entries-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Αγώνισμα</th>
+                                <th>Ημερομηνία Εγγραφής</th>
+                                <th>Ενέργειες</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entries-tbody">
+                            <!-- Entries injected by JS -->
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: rgba(96, 165, 250, 0.05);">
+                                <td colspan="3" style="text-align: right; font-weight: 700; padding: 1rem;">Συνολικό Κόστος:</td>
+                                <td id="total-cost-display" style="font-weight: 800; color: var(--primary); font-size: 1.1rem; padding: 1rem;">0€</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Final Save Button -->
+                <div id="final-save-container" class="hidden" style="margin-top: 2rem; display: flex; justify-content: center; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <button id="global-save-btn" class="primary-button" style="padding: 1.25rem 3rem; font-size: 1.1rem; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);">
+                        <i data-feather="check-square"></i>
+                        <span>Οριστική Αποθήκευση & Υποβολή</span>
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Admin View -->
+    <div id="admin-view" class="view">
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <div class="header-icon">
+                        <i data-feather="settings"></i>
+                    </div>
+                    <div>
+                        <h1>Πίνακας Διαχειριστή</h1>
+                        <p>Διαχείριση όλων των συμμετοχών</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button id="admin-export-btn" class="secondary-button" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                        <i data-feather="download"></i>
+                        <span>Εξαγωγή όλων</span>
+                    </button>
+                    <button id="admin-logout-btn" class="logout-button">
+                        <i data-feather="log-out"></i>
+                        <span>Αποσύνδεση</span>
+                    </button>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <div class="content-header">
+                    <h2>Όλες οι Συμμετοχές Αθλητών</h2>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="entries-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Αθλητής</th>
+                                <th>Αγώνισμα</th>
+                                <th>Ημερομηνία</th>
+                                <th>Ενέργειες</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-entries-tbody">
+                            <!-- All entries injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="content-header" style="margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <h2>Εγγεγραμμένοι Αθλητές</h2>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="entries-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Username</th>
+                                <th>Ονοματεπώνυμο</th>
+                                <th>Τηλέφωνο</th>
+                                <th>Email</th>
+                                <th>Ημερ. Γέννησης</th>
+                                <th>Φύλο</th>
+                                <th>Κωδικός Πληρωμής</th>
+                                <th>Σύνολο (€)</th>
+                                <th>Ενέργειες</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-tbody">
+                            <!-- All users injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="content-header" style="margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <h2>Ρυθμίσεις Διοργάνωσης</h2>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                    <!-- Max Events Setting -->
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; font-size: 1rem;">Όριο Αγωνισμάτων</h3>
+                        <div class="input-group">
+                            <i data-feather="hash" class="input-icon"></i>
+                            <input type="number" id="admin-max-events" min="1" max="10" value="4" style="padding-left: 3rem;">
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-light); margin-top: 0.5rem;">Μέγιστος αριθμός αγωνισμάτων ανά αθλητή</p>
+                    </div>
+
+                    <!-- Event Names Management -->
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; font-size: 1rem;">Διαθέσιμα Αγωνίσματα</h3>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" id="admin-new-event-name" placeholder="Όνομα νέου αγωνίσματος" style="flex: 1; padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border);">
+                            <button id="admin-add-event-btn" class="primary-button" style="padding: 0.5rem 1rem;">
+                                <i data-feather="plus"></i>
+                            </button>
+                        </div>
+                        <div id="admin-events-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <!-- Event names with delete buttons injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                    <!-- Price Settings -->
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; font-size: 1rem;">Τιμολόγηση Αγωνισμάτων</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="input-group" style="position: relative;">
+                                <label style="position: absolute; left: 3rem; top: -0.5rem; background: white; padding: 0 0.5rem; font-size: 0.7rem; color: var(--primary); z-index: 10;">1ο Αγώνισμα (€)</label>
+                                <div class="input-icon" style="display: flex; align-items: center; justify-content: center; font-style: normal; font-weight: 700;">€</div>
+                                <input type="number" id="admin-price-first" min="0" value="10" style="padding-left: 3rem;">
+                            </div>
+                            <div class="input-group" style="position: relative;">
+                                <label style="position: absolute; left: 3rem; top: -0.5rem; background: white; padding: 0 0.5rem; font-size: 0.7rem; color: var(--primary); z-index: 10;">Κάθε επόμενο (€)</label>
+                                <div class="input-icon" style="display: flex; align-items: center; justify-content: center; font-style: normal; font-weight: 700;">€</div>
+                                <input type="number" id="admin-price-additional" min="0" value="5" style="padding-left: 3rem;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Admin User Edit Modal -->
+    <div id="admin-user-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Επεξεργασία Στοιχείων Αθλητή</h3>
+                <button id="close-user-modal-btn" class="icon-button">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="admin-user-form">
+                    <input type="hidden" id="admin-edit-username">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Όνομα</label>
+                            <input type="text" id="admin-edit-first-name" class="select-field" style="padding: 0.75rem;" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Επώνυμο</label>
+                            <input type="text" id="admin-edit-last-name" class="select-field" style="padding: 0.75rem;" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ημερ. Γέννησης</label>
+                            <input type="date" id="admin-edit-birth-date" class="select-field" style="padding: 0.75rem;" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Τηλέφωνο</label>
+                            <input type="tel" id="admin-edit-phone" class="select-field" style="padding: 0.75rem;" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="admin-edit-email" class="select-field" style="padding: 0.75rem;" placeholder="user@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Φύλο</label>
+                            <select id="admin-edit-gender" class="select-field" style="padding: 0.75rem;" required>
+                                <option value="Male">Άνδρας</option>
+                                <option value="Female">Γυναίκα</option>
+                                <option value="Other">Άλλο</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button id="cancel-user-modal-btn" class="secondary-button">Ακύρωση</button>
+                <button id="save-user-modal-btn" class="primary-button">
+                    <i data-feather="save"></i>
+                    <span>Αποθήκευση Στοιχείων</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal overlay -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Entry</h3>
+                <button id="close-modal-btn" class="icon-button">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="modal-error" class="error-message hidden">
+                    <i data-feather="alert-circle"></i>
+                    <span id="modal-error-text"></span>
+                </div>
+                <div class="form-group">
+                    <label for="event-select">Επιλογή Αγωνίσματος</label>
+                    <select id="event-select" class="select-field">
+                        <option value="" disabled selected>Επιλέξτε αγώνισμα...</option>
+                        <!-- Options injected by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="cancel-modal-btn" class="secondary-button">Ακύρωση</button>
+                <button id="save-modal-btn" class="primary-button">
+                    <i data-feather="check-circle"></i>
+                    <span>Προσθήκη</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Disclaimer Modal -->
+    <div id="disclaimer-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Υπεύθυνη Δήλωση Συμμετοχής</h3>
+                <button id="close-disclaimer-btn" class="icon-button">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="disclaimer-box" style="padding: 1.25rem; background: #fff9f0; border: 2px solid #ffedda; border-radius: 0.75rem; font-size: 0.85rem; color: #4b5563; max-height: 350px; overflow-y: auto; line-height: 1.6; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                    <p style="font-weight: 700; margin-bottom: 0.75rem; color: #1f2937; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-feather="shield" style="width: 18px; height: 18px; color: #f59e0b;"></i>
+                        Υπεύθυνη Δήλωση - Disclaimer
+                    </p>
+                    <p style="margin-bottom: 0.75rem;">Με ατομική μου ευθύνη και γνωρίζοντας τις κυρώσεις του Ν. 1599/1986, δηλώνω ρητά και ανεπιφύλακτα ότι:</p>
+                    <ul style="padding-left: 1.25rem; list-style-type: disc; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <li><b style="color: #111827;">Ιατρική Ικανότητα:</b> Έχω υποβληθεί στις απαραίτητες ιατρικές εξετάσεις, είμαι απολύτως υγιής και συμμετέχω στους αγώνες με αποκλειστικά δική μου ιατρική ευθύνη.</li>
+                        <li><b style="color: #111827;">Αποδοχή Κινδύνου:</b> Γνωρίζω πλήρως τις απαιτήσεις και τη διαδικασία των αγωνισμάτων στα οποία λαμβάνω μέρος και συμμετέχω με δική μου βούληση.</li>
+                        <li><b style="color: #111827;">Αποποίηση Αξιώσεων:</b> Παραιτούμαι από κάθε δικαίωμα αποζημίωσης ή άλλη αξίωση έναντι των διοργανωτών, εθελοντών και χορηγών για τυχόν τραυματισμό, βλάβη της υγείας μου ή απώλεια προσωπικού υλικού κατά τη διάρκεια της διοργάνωσης.</li>
+                        <li><b style="color: #111827;">Προσωπικά Δεδομένα (GDPR):</b> Συναινώ στη χρήση των στοιχείων μου για τις οργανωτικές ανάγκες του αγώνα και παραχωρώ το δικαίωμα στους διοργανωτές να χρησιμοποιήσουν ελεύθερα φωτογραφίες και βίντεο με την εικόνα μου για την προβολή της διοργάνωσης.</li>
+                    </ul>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+                    <input type="checkbox" id="disclaimer-checkbox" style="margin-top: 0.25rem; cursor: pointer; width: 1.25rem; height: 1.25rem; accent-color: var(--primary);">
+                    <label for="disclaimer-checkbox" style="font-size: 1rem; cursor: pointer; color: var(--text); font-weight: 500;">Έχω διαβάσει και αποδέχομαι τους όρους της υπεύθυνης δήλωσης.</label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="cancel-disclaimer-btn" class="secondary-button">Ακύρωση</button>
+                <button id="final-confirm-btn" class="primary-button" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <i data-feather="check-circle"></i>
+                    <span>Οριστική Υποβολή</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
