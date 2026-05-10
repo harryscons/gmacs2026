@@ -121,17 +121,19 @@ function init() {
         const statusText = document.getElementById('status-text');
         if (statusText) statusText.innerHTML = "Έναρξη σύνδεσης...";
 
-        // Check connection
         db.ref('.info/connected').on('value', (snapshot) => {
             console.log("Connection status changed:", snapshot.val());
             if (statusText) {
                 if (snapshot.val() === true) {
                     statusText.innerHTML = '<span style="color: #059669;">● Συνδεδεμένος</span>';
                 } else {
-                    statusText.innerHTML = '<span style="color: #dc2626;">○ Αναμονή σύνδεσης...</span>';
+                    statusText.innerHTML = '<span style="color: #dc2626;">○ Αναμονή σύνδεσης...</span><br><small style="color: #991b1b;">(Ελέγξτε τις ρυθμίσεις στο Firebase)</small>';
                 }
             }
-        }, (err) => console.error("Connection Check Error:", err));
+        }, (err) => {
+            console.error("Connection Check Error:", err);
+            statusText.innerHTML = '<span style="color: #dc2626;">● Σφάλμα: ' + err.code + '</span>';
+        });
 
     // Force Check/Create Admin on start
     db.ref('users/admin').get().then((snapshot) => {
