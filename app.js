@@ -632,6 +632,9 @@ function renderAdminDashboard() {
                 <button class="icon-button" onclick="adminEditUser('${username}')">
                     <i data-feather="edit-2"></i>
                 </button>
+                <button class="icon-button danger" onclick="adminDeleteUser('${username}')">
+                    <i data-feather="trash-2"></i>
+                </button>
             </td>
         `;
         adminUsersTbody.appendChild(tr);
@@ -691,6 +694,33 @@ function adminDeleteEntry(id) {
         db.ref('entries/' + id).remove();
     }
 }
+
+function adminDeleteUser(username) {
+    const u = users[username];
+    const fullName = u ? `${u.firstName} ${u.lastName}` : username;
+    const userEntryCount = entries.filter(e => e.athleteName === username).length;
+
+    if (!confirm(`ΔΙΑΓΡΑΦΗ ΧΡΗΣΤΗ\n\nΌνομα: ${fullName} (@${username})\nΑγωνίσματα: ${userEntryCount}\n\nΘα διαγραφεί ο λογαριασμός ΚΑΙ όλες οι συμμετοχές του.\nΑυτή η ενέργεια είναι μη αναστρέψιμη!\n\nΣυνέχεια;`)) {
+        return;
+    }
+
+    // Delete all their entries first
+    const entryIdsToDelete = entries
+        .filter(e => e.athleteName === username)
+        .map(e => e.id);
+
+    const deleteEntryPromises = entryIdsToDelete.map(id => db.ref('entries/' + id).remove());
+
+    Promise.all(deleteEntryPromises)
+        .then(() => db.ref('users/' + username).remove())
+        .then(() => {
+            alert(`Ο χρήστης "${fullName}" και ${entryIdsToDelete.length} συμμετοχές διαγράφηκαν επιτυχώς.`);
+        })
+        .catch(error => {
+            alert('Σφάλμα κατά τη διαγραφή: ' + error.message);
+        });
+}
+
 
 function adminEditEntry(id) {
     const entry = entries.find(e => e.id === id);
