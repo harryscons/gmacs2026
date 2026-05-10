@@ -120,9 +120,24 @@ const cancelUserModalBtn = document.getElementById('cancel-user-modal-btn');
 
 // Helper to switch views
 function showView(viewId) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    console.log("Switching to view:", viewId);
+    document.querySelectorAll('.view').forEach(v => {
+        v.classList.remove('active');
+        v.style.display = 'none'; 
+    });
+    
     const target = document.getElementById(viewId);
-    if (target) target.classList.add('active');
+    if (target) {
+        target.classList.add('active');
+        target.style.display = 'flex'; 
+        
+        // If we go back to login-view, make sure the landing is visible
+        if (viewId === 'login-view') {
+            authLanding.classList.remove('hidden');
+            authLogin.classList.add('hidden');
+            authRegister.classList.add('hidden');
+        }
+    }
 }
 
 // Initialize
@@ -295,38 +310,38 @@ async function login(name, password) {
         }
         
         if (userObj) {
-        if (userObj.password !== password) {
-            alert('Λάθος κωδικός πρόσβασης.');
-            return false;
-        }
-        
-        currentUser = name;
-        localStorage.setItem('race_user', name);
-        
-        const userData = users[currentUser];
-        
-        if (userData.role === 'admin') {
-            showView('admin-view');
-            renderAdminDashboard();
-        } else {
-            welcomeName.textContent = userData.firstName + ' ' + userData.lastName;
-            paymentCodeDisplay.textContent = userData.paymentCode;
+            if (userObj.password !== password) {
+                alert('Λάθος κωδικός πρόσβασης.');
+                return false;
+            }
             
-            showView('dashboard-view');
+            currentUser = name;
+            localStorage.setItem('race_user', name);
             
-            // Populate profile form in dashboard
-            firstNameInput.value = userData.firstName || '';
-            lastNameInput.value = userData.lastName || '';
-            birthDateInput.value = userData.birthDate || '';
-            phoneInput.value = userData.phone || '';
-            emailInput.value = userData.email || '';
-            genderInput.value = userData.gender || '';
-
-            // Load session entries (draft)
-            sessionEntries = entries.filter(e => e.athleteName === name).map(e => ({...e}));
+            const userData = userObj; // Use the one we just fetched
             
-            renderEntries();
-        }
+            if (userData.role === 'admin') {
+                showView('admin-view');
+                renderAdminDashboard();
+            } else {
+                if (welcomeName) welcomeName.textContent = userData.firstName + ' ' + userData.lastName;
+                if (paymentCodeDisplay) paymentCodeDisplay.textContent = userData.paymentCode;
+                
+                showView('dashboard-view');
+                
+                // Populate profile form in dashboard
+                if (firstNameInput) firstNameInput.value = userData.firstName || '';
+                if (lastNameInput) lastNameInput.value = userData.lastName || '';
+                if (birthDateInput) birthDateInput.value = userData.birthDate || '';
+                if (phoneInput) phoneInput.value = userData.phone || '';
+                if (emailInput) emailInput.value = userData.email || '';
+                if (genderInput) genderInput.value = userData.gender || '';
+    
+                // Load session entries (draft)
+                sessionEntries = entries.filter(e => e.athleteName === name).map(e => ({...e}));
+                renderEntries();
+            }
+            return true;
         } else {
             alert('Ο χρήστης δεν βρέθηκε. Παρακαλώ εγγραφείτε.');
             return false;

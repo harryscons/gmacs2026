@@ -46,22 +46,26 @@ input, select {
   display: none !important;
 }
 
+/* Base View Style */
 .view {
   display: none;
-  flex: 1;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 .view.active {
-  display: flex;
+  display: flex !important;
   animation: fadeIn 0.3s ease-out;
 }
 
 /* Login View */
 #login-view {
   align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  justify-content: flex-start; /* Align to top */
+  padding: 1rem;
+  padding-bottom: 4rem;
+  overflow-y: auto;
+  gap: 1rem;
 }
 
 .glass-card {
