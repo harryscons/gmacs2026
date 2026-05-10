@@ -3,7 +3,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyA4ZBIjmz_kBUjJ8JBT9QUa5l1JV5hs2rA",
   authDomain: "gmacs2026.firebaseapp.com",
   projectId: "gmacs2026",
-  databaseURL: "https://gmacs2026-default-rtdb.europe-west1.firebasedatabase.app", 
+  databaseURL: "https://gmacs2026-default-rtdb.firebaseio.com", 
   storageBucket: "gmacs2026.firebasestorage.app",
   messagingSenderId: "517340210442",
   appId: "1:517340210442:web:ad6e31939fc516f0a3c6f3",
@@ -156,6 +156,9 @@ function init() {
         
         refreshEventSelect();
         if (currentUser === 'admin') renderAdminEventsList();
+    }, (error) => {
+        console.error("Firebase Settings Error:", error);
+        alert("Σφάλμα σύνδεσης (Settings): " + error.message);
     });
 
     // Listen for Users
@@ -173,6 +176,9 @@ function init() {
         }
 
         if (currentUser === 'admin') renderAdminDashboard();
+    }, (error) => {
+        console.error("Firebase Users Error:", error);
+        alert("Σφάλμα σύνδεσης (Users): " + error.message);
     });
 
     // Listen for Entries
