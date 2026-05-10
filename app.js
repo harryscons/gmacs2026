@@ -1,4 +1,5 @@
 // Firebase Configuration
+alert("System starting...");
 const firebaseConfig = {
   apiKey: "AIzaSyA4ZBIjmz_kBUjJ8JBT9QUa5l1JV5hs2rA",
   authDomain: "gmacs2026.firebaseapp.com",
