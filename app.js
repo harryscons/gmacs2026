@@ -337,7 +337,8 @@ async function login(name, password) {
                 if (emailInput) emailInput.value = userData.email || '';
                 if (genderInput) genderInput.value = userData.gender || '';
     
-                // Load session entries (draft)
+                // Load existing entries from Firebase as the session (do NOT start fresh)
+                // This ensures existing submissions are never accidentally wiped
                 sessionEntries = entries.filter(e => e.athleteName === name).map(e => ({...e}));
                 renderEntries();
             }
@@ -449,7 +450,18 @@ function finalizeSubmission() {
         return;
     }
     
-    // 1. Find and delete existing entries for this user
+    if (sessionEntries.length === 0) {
+        alert('Δεν έχετε προσθέσει κανένα αγώνισμα.');
+        return;
+    }
+
+    // Disable button immediately to prevent double-clicks
+    finalConfirmBtn.disabled = true;
+    finalConfirmBtn.style.opacity = '0.5';
+    finalConfirmBtn.style.cursor = 'not-allowed';
+    finalConfirmBtn.querySelector('span').textContent = 'Αποθήκευση...';
+
+    // 1. Find and delete existing entries for this user from Firebase
     const existingUserEntryIds = entries
         .filter(e => e.athleteName === currentUser)
         .map(e => e.id);
@@ -457,17 +469,25 @@ function finalizeSubmission() {
     const deletePromises = existingUserEntryIds.map(id => db.ref('entries/' + id).remove());
 
     Promise.all(deletePromises).then(() => {
-        // 2. Add new session entries
+        // 2. Add the current session entries to Firebase
         const addPromises = sessionEntries.map(entry => {
-            const { id, ...data } = entry; // Remove local id to let Firebase generate one or keep it
-            return db.ref('entries').push(data);
+            const entryData = {
+                athleteName: entry.athleteName,
+                eventName: entry.eventName,
+                createdAt: entry.createdAt
+            };
+            return db.ref('entries').push(entryData);
         });
-
         return Promise.all(addPromises);
     }).then(() => {
-        alert('Η εγγραφή σας ολοκληρώθηκε και αποθηκεύτηκε επιτυχώς!');
         closeDisclaimerModal();
+        alert('Η εγγραφή σας ολοκληρώθηκε και αποθηκεύτηκε επιτυχώς!');
     }).catch(error => {
+        // Re-enable button on error so user can try again
+        finalConfirmBtn.disabled = false;
+        finalConfirmBtn.style.opacity = '1';
+        finalConfirmBtn.style.cursor = 'pointer';
+        finalConfirmBtn.querySelector('span').textContent = 'Οριστική Υποβολή';
         alert('Σφάλμα κατά την αποθήκευση: ' + error.message);
     });
 }
