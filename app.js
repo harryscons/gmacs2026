@@ -1,20 +1,29 @@
-let EVENTS_LIST = JSON.parse(localStorage.getItem('race_event_names')) || [
-    "100μ", "200μ", "400μ", "800μ", "1500μ", "5000μ",
-    "110μ Εμπόδια", "400μ Εμπόδια", "5000μ Βάδην", "Ακόντιο", 
-    "Βαρύ Οργανο", "Δίσκος", "Επι Κοντώ", "Μήκος", "Σφαίρα", 
-    "Σφύρα", "Τριπλούν", "Υψος", "4x100", "4x400"
-];
-let MAX_EVENTS = parseInt(localStorage.getItem('race_max_events')) || 4;
-let PRICE_FIRST = parseFloat(localStorage.getItem('race_price_first')) || 10;
-let PRICE_ADDITIONAL = parseFloat(localStorage.getItem('race_price_additional')) || 5;
+// Firebase Configuration (Replace with your actual config from Firebase Console)
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "gmacs2026.firebaseapp.com",
+    databaseURL: "https://gmacs2026-default-rtdb.firebaseio.com",
+    projectId: "gmacs2026",
+    storageBucket: "gmacs2026.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
 
-// State
-let currentUser = null;
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// State (Synced with Firebase)
+let EVENTS_LIST = [];
+let MAX_EVENTS = 4;
+let PRICE_FIRST = 10;
+let PRICE_ADDITIONAL = 5;
+let users = {};
 let entries = [];
+let currentUser = localStorage.getItem('race_user') || null;
 let sessionEntries = []; // Temporary entries for the current session
 let editingEntryId = null;
 
-// DOM Elements
 // DOM Elements
 const loginView = document.getElementById('login-view');
 const authLanding = document.getElementById('auth-landing');
@@ -105,48 +114,72 @@ const cancelUserModalBtn = document.getElementById('cancel-user-modal-btn');
 
 // Initialize
 function init() {
-    // One-time data reset as requested by user
-    if (!localStorage.getItem('data_reset_v4')) {
-        localStorage.removeItem('race_users');
-        localStorage.removeItem('race_entries');
-        localStorage.removeItem('race_user');
-        localStorage.setItem('data_reset_v4', 'true');
-    }
-
-    // Ensure admin exists
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
-    if (!users['admin']) {
-        users['admin'] = {
-            password: 'admin',
-            paymentCode: 'ADMIN-001',
-            firstName: 'System',
-            lastName: 'Admin',
-            birthDate: '1970-01-01',
-            gender: 'Other',
-            role: 'admin'
-        };
-        localStorage.setItem('race_users', JSON.stringify(users));
-    }
-
-    // Populate select options
-    refreshEventSelect();
-
-    // Check auth
-    const storedUser = localStorage.getItem('race_user');
-    if (storedUser) {
-        // Find user data
-        const users = JSON.parse(localStorage.getItem('race_users') || '{}');
-        if (users[storedUser]) {
-            login(storedUser, users[storedUser].password);
-        } else {
-            localStorage.removeItem('race_user');
+    // Listen for Settings
+    db.ref('settings').on('value', (snapshot) => {
+        const settings = snapshot.val() || {};
+        MAX_EVENTS = settings.maxEvents || 4;
+        PRICE_FIRST = settings.priceFirst || 10;
+        PRICE_ADDITIONAL = settings.priceAdditional || 5;
+        
+        if (settings.events) {
+            EVENTS_LIST = settings.events;
+            refreshEventSelect();
+            if (currentUser === 'admin') renderAdminEventsList();
         }
-    }
+    });
 
-    // Load all entries from local storage
-    const storedEntries = localStorage.getItem('race_entries');
-    if (storedEntries) {
-        entries = JSON.parse(storedEntries);
+    // Listen for Users
+    db.ref('users').on('value', (snapshot) => {
+        users = snapshot.val() || {};
+        
+        // Setup initial admin if not exists
+        if (!users['admin']) {
+            db.ref('users/admin').set({
+                password: 'admin',
+                role: 'admin',
+                firstName: 'System',
+                lastName: 'Administrator'
+            });
+        }
+
+        if (currentUser === 'admin') renderAdminDashboard();
+    });
+
+    // Listen for Entries
+    db.ref('entries').on('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        
+        if (currentUser) {
+            if (currentUser === 'admin') {
+                renderAdminDashboard();
+            } else {
+                // If not finalized yet, sessionEntries might be different
+                // But typically on load we show what's in DB
+                sessionEntries = entries.filter(e => e.athleteName === currentUser).map(e => ({...e}));
+                renderEntries();
+            }
+        }
+    });
+
+    if (currentUser) {
+        authLanding.classList.add('hidden');
+        if (currentUser === 'admin') {
+            adminView.classList.add('active');
+        } else {
+            dashboardView.classList.add('active');
+            const u = users[currentUser];
+            if (u) {
+                firstNameInput.value = u.firstName || '';
+                lastNameInput.value = u.lastName || '';
+                birthDateInput.value = u.birthDate || '';
+                phoneInput.value = u.phone || '';
+                emailInput.value = u.email || '';
+                genderInput.value = u.gender || '';
+            }
+        }
+    } else {
+        authLanding.classList.remove('hidden');
     }
 }
 
@@ -161,10 +194,9 @@ function generatePaymentCode() {
 }
 
 function login(name, password) {
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
+    const userObj = users[name];
     
-    if (users[name]) {
-        const userObj = users[name];
+    if (userObj) {
         if (userObj.password !== password) {
             alert('Λάθος κωδικός πρόσβασης.');
             return false;
@@ -207,14 +239,12 @@ function login(name, password) {
 }
 
 function register(username, password, firstName, lastName, birthDate, phone, email, gender) {
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
-    
     if (users[username]) {
         alert('Το όνομα χρήστη υπάρχει ήδη.');
         return false;
     }
 
-    users[username] = {
+    const newUser = {
         password: password,
         paymentCode: generatePaymentCode(),
         firstName: firstName,
@@ -222,33 +252,38 @@ function register(username, password, firstName, lastName, birthDate, phone, ema
         birthDate: birthDate,
         phone: phone,
         email: email,
-        gender: gender
+        gender: gender,
+        role: 'athlete'
     };
 
-    localStorage.setItem('race_users', JSON.stringify(users));
-    alert('Η εγγραφή ολοκληρώθηκε επιτυχώς! Τώρα μπορείτε να συνδεθείτε.');
-    
-    // Switch to login form
-    authRegister.classList.add('hidden');
-    authLogin.classList.remove('hidden');
-    usernameInput.value = username;
-    passwordInput.value = password;
-    
+    db.ref('users/' + username).set(newUser).then(() => {
+        alert('Η εγγραφή ολοκληρώθηκε! Παρακαλώ συνδεθείτε.');
+        authRegister.classList.add('hidden');
+        authLanding.classList.remove('hidden');
+    }).catch(error => {
+        alert('Σφάλμα κατά την εγγραφή: ' + error.message);
+    });
+
     return true;
 }
 
 function saveProfile(firstName, lastName, birthDate, phone, email, gender) {
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
-    if (users[currentUser]) {
-        users[currentUser].firstName = firstName;
-        users[currentUser].lastName = lastName;
-        users[currentUser].birthDate = birthDate;
-        users[currentUser].phone = phone;
-        users[currentUser].email = email;
-        users[currentUser].gender = gender;
-        localStorage.setItem('race_users', JSON.stringify(users));
+    if (!currentUser) return;
+    
+    const updates = {
+        firstName,
+        lastName,
+        birthDate,
+        phone,
+        email,
+        gender
+    };
+
+    db.ref('users/' + currentUser).update(updates).then(() => {
         alert('Τα στοιχεία αποθηκεύτηκαν επιτυχώς!');
-    }
+    }).catch(error => {
+        alert('Σφάλμα κατά την αποθήκευση: ' + error.message);
+    });
 }
 
 function logout() {
@@ -277,11 +312,6 @@ function getMyEntries() {
     return sessionEntries;
 }
 
-function saveEntries() {
-    localStorage.setItem('race_entries', JSON.stringify(entries));
-    renderEntries();
-}
-
 function openDisclaimerModal() {
     disclaimerModal.classList.remove('hidden');
     disclaimerCheckbox.checked = false;
@@ -300,12 +330,27 @@ function finalizeSubmission() {
         return;
     }
     
-    // Official save: Remove old entries and add current session ones
-    entries = entries.filter(e => e.athleteName !== currentUser).concat(sessionEntries);
-    saveEntries();
-    
-    alert('Η οριστική υποβολή ολοκληρώθηκε επιτυχώς! Σας ευχαριστούμε για τη συμμετοχή.');
-    closeDisclaimerModal();
+    // 1. Find and delete existing entries for this user
+    const existingUserEntryIds = entries
+        .filter(e => e.athleteName === currentUser)
+        .map(e => e.id);
+
+    const deletePromises = existingUserEntryIds.map(id => db.ref('entries/' + id).remove());
+
+    Promise.all(deletePromises).then(() => {
+        // 2. Add new session entries
+        const addPromises = sessionEntries.map(entry => {
+            const { id, ...data } = entry; // Remove local id to let Firebase generate one or keep it
+            return db.ref('entries').push(data);
+        });
+
+        return Promise.all(addPromises);
+    }).then(() => {
+        alert('Η εγγραφή σας ολοκληρώθηκε και αποθηκεύτηκε επιτυχώς!');
+        closeDisclaimerModal();
+    }).catch(error => {
+        alert('Σφάλμα κατά την αποθήκευση: ' + error.message);
+    });
 }
 
 function formatCurrency(amount) {
@@ -381,7 +426,6 @@ function renderEntries() {
 function renderAdminDashboard() {
     adminEntriesTbody.innerHTML = '';
     adminUsersTbody.innerHTML = '';
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
     
     // Render Entries
     entries.forEach((entry, index) => {
@@ -469,7 +513,7 @@ function renderAdminEventsList() {
 function adminDeleteEvent(index) {
     if (confirm('Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το αγώνισμα από τη λίστα επιλογών;')) {
         EVENTS_LIST.splice(index, 1);
-        localStorage.setItem('race_event_names', JSON.stringify(EVENTS_LIST));
+        db.ref('settings/events').set(EVENTS_LIST);
         renderAdminEventsList();
         refreshEventSelect();
     }
@@ -487,9 +531,7 @@ function refreshEventSelect() {
 
 function adminDeleteEntry(id) {
     if (confirm('Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτή τη συμμετοχή ως διαχειριστής;')) {
-        entries = entries.filter(e => e.id !== id);
-        localStorage.setItem('race_entries', JSON.stringify(entries));
-        renderAdminDashboard();
+        db.ref('entries/' + id).remove();
     }
 }
 
@@ -501,7 +543,6 @@ function adminEditEntry(id) {
 }
 
 function adminEditUser(username) {
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
     const u = users[username];
     if (u) {
         adminEditUsername.value = username;
@@ -517,18 +558,19 @@ function adminEditUser(username) {
 
 function adminSaveUser() {
     const username = adminEditUsername.value;
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
-    if (users[username]) {
-        users[username].firstName = adminEditFirstName.value;
-        users[username].lastName = adminEditLastName.value;
-        users[username].birthDate = adminEditBirthDate.value;
-        users[username].phone = adminEditPhone.value;
-        users[username].email = adminEditEmail.value;
-        users[username].gender = adminEditGender.value;
-        localStorage.setItem('race_users', JSON.stringify(users));
-        adminUserModal.classList.add('hidden');
-        renderAdminDashboard();
-        alert('Τα στοιχεία του αθλητή ενημερώθηκαν επιτυχώς!');
+    if (username && users[username]) {
+        const updates = {
+            firstName: adminEditFirstName.value,
+            lastName: adminEditLastName.value,
+            birthDate: adminEditBirthDate.value,
+            phone: adminEditPhone.value,
+            email: adminEditEmail.value,
+            gender: adminEditGender.value
+        };
+
+        db.ref('users/' + username).update(updates).then(() => {
+            adminUserModal.classList.add('hidden');
+        }).catch(error => alert('Σφάλμα: ' + error.message));
     }
 }
 
@@ -573,13 +615,8 @@ function saveEntry() {
     
     if (currentUser === 'admin') {
         if (editingEntryId) {
-            const entry = entries.find(e => e.id === editingEntryId);
-            if (entry) entry.eventName = eventName;
-        } else {
-            // Admin adding for someone? (Currently no athlete select in modal)
+            db.ref('entries/' + editingEntryId).update({ eventName: eventName });
         }
-        localStorage.setItem('race_entries', JSON.stringify(entries));
-        renderAdminDashboard();
     } else {
         // Duplicate check
         if (editingEntryId) {
@@ -616,8 +653,6 @@ function exportToExcel() {
         alert('Δεν υπάρχουν συμμετοχές για εξαγωγή.');
         return;
     }
-
-    const users = JSON.parse(localStorage.getItem('race_users') || '{}');
 
     // Tab 1: Detailed Entries (One row per event)
     const dataForEntries = entries.map(entry => {
@@ -761,8 +796,8 @@ if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', logout);
 
 if (adminMaxEventsInput) {
     adminMaxEventsInput.addEventListener('change', (e) => {
-        MAX_EVENTS = parseInt(e.target.value) || 4;
-        localStorage.setItem('race_max_events', MAX_EVENTS.toString());
+        const val = parseInt(e.target.value) || 4;
+        db.ref('settings/maxEvents').set(val);
     });
 }
 
@@ -770,28 +805,25 @@ if (adminAddEventBtn) {
     adminAddEventBtn.addEventListener('click', () => {
         const newName = adminNewEventInput.value.trim();
         if (newName && !EVENTS_LIST.includes(newName)) {
-            EVENTS_LIST.push(newName);
-            localStorage.setItem('race_event_names', JSON.stringify(EVENTS_LIST));
-            adminNewEventInput.value = '';
-            renderAdminEventsList();
-            refreshEventSelect();
+            const newList = [...EVENTS_LIST, newName];
+            db.ref('settings/events').set(newList).then(() => {
+                adminNewEventInput.value = '';
+            });
         }
     });
 }
 
 if (adminPriceFirstInput) {
     adminPriceFirstInput.addEventListener('change', (e) => {
-        PRICE_FIRST = parseFloat(e.target.value) || 0;
-        localStorage.setItem('race_price_first', PRICE_FIRST.toString());
-        renderAdminDashboard();
+        const val = parseFloat(e.target.value) || 0;
+        db.ref('settings/priceFirst').set(val);
     });
 }
 
 if (adminPriceAdditionalInput) {
     adminPriceAdditionalInput.addEventListener('change', (e) => {
-        PRICE_ADDITIONAL = parseFloat(e.target.value) || 0;
-        localStorage.setItem('race_price_additional', PRICE_ADDITIONAL.toString());
-        renderAdminDashboard();
+        const val = parseFloat(e.target.value) || 0;
+        db.ref('settings/priceAdditional').set(val);
     });
 }
 
