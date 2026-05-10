@@ -137,9 +137,25 @@ function init() {
         
         if (settings.events) {
             EVENTS_LIST = settings.events;
-            refreshEventSelect();
-            if (currentUser === 'admin') renderAdminEventsList();
+        } else {
+            // Upload default events if database is empty
+            const defaultEvents = [
+                "100μ", "200μ", "400μ", "800μ", "1500μ", "5000μ",
+                "110μ Εμπόδια", "400μ Εμπόδια", "5000μ Βάδην", "Ακόντιο", 
+                "Δίσκος", "Επί κοντώ", "Μήκος", "Σφαίρα", 
+                "Σφύρα", "Τριπλούν", "Ύψος", "4x100", "4x400"
+            ];
+            db.ref('settings').update({
+                events: defaultEvents,
+                maxEvents: 4,
+                priceFirst: 10,
+                priceAdditional: 5
+            });
+            EVENTS_LIST = defaultEvents;
         }
+        
+        refreshEventSelect();
+        if (currentUser === 'admin') renderAdminEventsList();
     });
 
     // Listen for Users
