@@ -11,7 +11,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+if (typeof firebase === 'undefined') {
+    alert("CRITICAL ERROR: Firebase scripts did not load! Check your internet or firewall.");
+} else {
+    console.log("Firebase loaded successfully.");
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.database();
 
 // State (Synced with Firebase)
@@ -263,15 +268,24 @@ function generatePaymentCode() {
 }
 
 async function login(name, password) {
-    // If users are not loaded yet, try to fetch this specific user directly from Firebase
-    let userObj = users[name];
-    
-    if (!userObj) {
-        const snapshot = await db.ref('users/' + name).once('value');
-        userObj = snapshot.val();
-    }
-    
-    if (userObj) {
+    console.log("Login attempt for:", name);
+    try {
+        // If users are not loaded yet, try to fetch this specific user directly from Firebase
+        let userObj = users[name];
+        
+        if (!userObj) {
+            console.log("User not in cache, fetching from cloud...");
+            // Add a timeout manually since Firebase .once() can hang
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("Timeout: Database is not responding.")), 5000)
+            );
+            const fetchPromise = db.ref('users/' + name).once('value');
+            
+            const snapshot = await Promise.race([fetchPromise, timeoutPromise]);
+            userObj = snapshot.val();
+        }
+        
+        if (userObj) {
         if (userObj.password !== password) {
             alert('Λάθος κωδικός πρόσβασης.');
             return false;
@@ -306,9 +320,14 @@ async function login(name, password) {
             
             renderEntries();
         }
+        } else {
+            alert('Ο χρήστης δεν βρέθηκε. Παρακαλώ εγγραφείτε.');
+            return false;
+        }
         return true;
-    } else {
-        alert('Ο χρήστης δεν βρέθηκε. Παρακαλώ εγγραφείτε.');
+    } catch (err) {
+        console.error("Login Error:", err);
+        alert("Σφάλμα σύνδεσης: " + err.message);
         return false;
     }
 }
