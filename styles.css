@@ -522,5 +522,6 @@ input, select {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+    min-width: 600px;
   }
 }
