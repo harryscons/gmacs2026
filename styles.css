@@ -461,8 +461,8 @@ input, select {
     padding: 1rem;
   }
 
-  /* Stack the profile form from 2 columns to 1 */
-  #profile-form > div {
+  /* Stack the forms from 2 columns to 1 */
+  #profile-form > div, #register-form > div {
     grid-template-columns: 1fr !important;
   }
 
