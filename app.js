@@ -194,8 +194,14 @@ function generatePaymentCode() {
     return code;
 }
 
-function login(name, password) {
-    const userObj = users[name];
+async function login(name, password) {
+    // If users are not loaded yet, try to fetch this specific user directly from Firebase
+    let userObj = users[name];
+    
+    if (!userObj) {
+        const snapshot = await db.ref('users/' + name).once('value');
+        userObj = snapshot.val();
+    }
     
     if (userObj) {
         if (userObj.password !== password) {
