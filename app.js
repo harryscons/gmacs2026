@@ -28,6 +28,7 @@ let users = {};
 let entries = [];
 let currentUser = localStorage.getItem('race_user') || null;
 let sessionEntries = []; // Temporary entries for the current session
+let sessionInitialized = false; // True once sessionEntries has been loaded from Firebase
 let editingEntryId = null;
 
 // DOM Elements
@@ -245,8 +246,13 @@ function init() {
             if (currentUser === 'admin') {
                 renderAdminDashboard();
             } else {
-                // Only re-render the UI - do NOT overwrite sessionEntries
-                // sessionEntries is the user's working copy, managed only by add/edit/delete actions
+                // On first load after login, initialize sessionEntries from Firebase.
+                // After that, NEVER overwrite it - it's the user's working copy.
+                if (!sessionInitialized) {
+                    sessionEntries = entries.filter(e => e.athleteName === currentUser).map(e => ({...e}));
+                    sessionInitialized = true;
+                    console.log("Session initialized with", sessionEntries.length, "entries from Firebase.");
+                }
                 renderEntries();
             }
         }
@@ -316,6 +322,8 @@ async function login(name, password) {
             
             currentUser = name;
             localStorage.setItem('race_user', name);
+            sessionInitialized = false; // Reset so entries are freshly loaded from Firebase
+            sessionEntries = []; // Clear working copy
             
             const userData = userObj; // Use the one we just fetched
             
@@ -409,6 +417,8 @@ function saveProfile(firstName, lastName, birthDate, phone, email, gender) {
 
 function logout() {
     currentUser = null;
+    sessionInitialized = false;
+    sessionEntries = [];
     localStorage.removeItem('race_user');
     showView('login-view');
     authLanding.classList.remove('hidden');
