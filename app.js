@@ -236,7 +236,7 @@ function init() {
         alert("Σφάλμα σύνδεσης (Users): " + error.message);
     });
 
-    // Listen for Entries
+    // Listen for Entries - ONLY update global entries array, never overwrite sessionEntries
     db.ref('entries').on('value', (snapshot) => {
         const data = snapshot.val() || {};
         entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
@@ -245,9 +245,8 @@ function init() {
             if (currentUser === 'admin') {
                 renderAdminDashboard();
             } else {
-                // If not finalized yet, sessionEntries might be different
-                // But typically on load we show what's in DB
-                sessionEntries = entries.filter(e => e.athleteName === currentUser).map(e => ({...e}));
+                // Only re-render the UI - do NOT overwrite sessionEntries
+                // sessionEntries is the user's working copy, managed only by add/edit/delete actions
                 renderEntries();
             }
         }
